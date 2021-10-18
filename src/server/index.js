@@ -5,7 +5,7 @@ import { getStore } from './../store/index';
 import routes from '../Routes'
 import proxy from 'express-http-proxy'
 const app = express()
-const port = 3000
+const port = 8890
 
 app.use(express.static("public"))
 //http://39.96.56.146:9000/records?userId=60f7df240752ba645efe0fba
@@ -16,7 +16,7 @@ app.use("/records", proxy('http://39.96.56.146:9000', {
     }
 }));
 app.get('*', (req, res) => {
-    const store = getStore()
+    const store = getStore(req)
     const matchedRoutes = matchRoutes(routes, req.path);
     const promises = []
     matchedRoutes.forEach(item => {

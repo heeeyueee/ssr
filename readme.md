@@ -466,7 +466,99 @@ https://github.com/reduxjs/redux-thunk#injecting-a-custom-argument
 
 > 从字面意思就可以了解创建store添加react-thunk中间键的时候可以有额外的参数
 
-服务端和客户端请求异步数据在创建store的时候就区分开来
+```js
+const store = createStore(
+  reducer,
+  applyMiddleware(thunk.withExtraArgument(api)),
+);
 
+// later
+function fetchUser(id) {
+  return (dispatch, getState, api) => {
+    // you can use api here
+  };
+}
+```
 
+创建store的时候传参，可以在异步请求时作为返回函数的第三个参数来使用
 
+* 服务端和客户端请求异步数据在创建store的时候就通过传入不同的axios实例区分开来
+
+```js
+export const getStore = () => {
+    //改变服务端store的内容，那么就一定要使用serverAxios
+    return createStore(reducer, applyMiddleware(thunk.withExtraArgument(serverAxios)))
+}
+export const getClientStore = () => {
+    //改变客户端store的内容，那么就一定要使用clientAxios
+    const defaultState = window.context.state
+    return createStore(reducer, defaultState, applyMiddleware(thunk.withExtraArgument(clientAxios)))
+}
+```
+
+* 在异步的actions中就可以直接通过传入的axios实例来自动发送不同的请求
+
+  ```js
+  export const getHomeList = () => {
+      return (dispatch, getState, axiosInstance) => {
+          return axiosInstance.get("/records?userId=60f7df240752ba645efe0fba")
+              .then((res) => {
+                  const list = res.data
+                  dispatch(changeList(list))
+              })
+      }
+  }
+  ```
+
+## 多级路由
+
+### renderRoutes
+
+* 使用react-router-config中的renderRoutes 方法实现对多级路由的支持
+* 官方文档[renderRoutes 方法](https://github.com/remix-run/react-router/tree/main/packages/react-router-config#renderroutesroutes-extraprops---switchprops--)
+
+```js
+ //服务端
+<StaticRouter location={req.path} context={{}}>
+                {/* {routes.map(route => (
+                    <Route {...route} />
+                ))} */}
+                {/* 多级路由改用renderRoutes方法 */}
+                <div>
+                    {renderRoutes(routes)}
+                </div>
+ </StaticRouter>
+                     
+//客户端
+<BrowserRouter>
+                {/* {routes.map(route => (
+                    <Route {...route} />
+                ))} */}
+                <div>
+                    {renderRoutes(routes)}
+                </div>
+ </BrowserRouter>      
+//在主页面中就可以直接通过props来拿到二级路由
+const App = (props) => {
+    return <div>
+        <Header />
+        {renderRoutes(props.route.routes)}
+    </div>
+}                     
+```
+
+## 总结
+
+* 先规划路由
+
+  路由里面会设置SSR相应的loadData
+
+* 再在components中去实现页面相关
+
+  页面中需要结合redux来拿到数据，会有路由相关的操作（重定向等……）
+
+* 再就是组件单独的store要combineReducers到总的store中，store又分为服务端的store和客户端的store
+
+  redux中有同步的数据和异步的数据
+
+  异步的数据：在node中间层请求做服务端渲染由loadData触发请求真正的api server，第一次进入页面时服务端已经请求了组件相关的异步数据客户端可以不用二次请求，直接已服务端请求后的store来初始化客户端store，但非首次跳转到客户端时还是需要客户端发起异步请求改变store拿到数据，客户端的请求都通过node中间层做proxy代理转发给api server.

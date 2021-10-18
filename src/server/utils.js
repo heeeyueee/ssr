@@ -2,6 +2,7 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter, Route } from 'react-router-dom'
 import React from 'react'
 import { Provider } from 'react-redux'
+import { renderRoutes } from 'react-router-config';
 
 export const render = (req, store, routes) => {
     // const store = getStore()
@@ -31,9 +32,13 @@ export const render = (req, store, routes) => {
     const content = renderToString((
         <Provider store={store}>
             <StaticRouter location={req.path} context={{}}>
-                {routes.map(route => (
+                {/* {routes.map(route => (
                     <Route {...route} />
-                ))}
+                ))} */}
+                {/* 多级路由改用renderRoutes方法 */}
+                <div>
+                    {renderRoutes(routes)}
+                </div>
             </StaticRouter>
         </Provider>
     ))

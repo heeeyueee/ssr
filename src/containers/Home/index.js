@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import Header from './../../components/Header';
 import { connect } from 'react-redux'
 import { getHomeList } from './store/actions'
 
@@ -15,7 +14,7 @@ const Home = (props) => {
         return list.map((item) => { return <li key={item._id}>{item.amount}</li> })
     }
     return <div>
-        <Header />
+
         <div>
             Home,{props.name}
         </div>
