@@ -29,12 +29,13 @@ const mapStateToProps = state => ({
 })
 const mapDispatchToProps = dispatch => ({
     getHomeList() {
-        dispatch(getHomeList(false))//客户端渲染传入false
+        dispatch(getHomeList())//客户端渲染传入false
     }
 
 })
 Home.loadData = (store) => {
     //这个函数负责在服务端渲染之前，把这个路由需要的数据提前加载好
-    return store.dispatch(getHomeList(true))//只有这个是服务器渲染时在服务器端运行的传入true
+    return store.dispatch(getHomeList())//只有这个是服务器渲染时在服务器端运行的传入true
+    //使用react-thunk的withExtraArgument方法后就不需要传参了，直接在store创建的时候改变
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Home);
